@@ -10,35 +10,27 @@ import copy
 
 from torchvision import transforms
 from tqdm import tqdm
-from matplotlib import pyplot as plt
-from PIL import Image
-
-
-
 
 
 ########################################### --- DATA PRE-PROCESSING --- ################################################
-
 # Loading the datasets (training set and test set) --- from local disk
-train_dataset_path = "C:\Learning\Computer Science\Machine Learning\\Udemy-DeepLearningAZ2023-NeuralNetworks\PART-02-CNN-CONVOLUTIONAL-NEURAL-NETWORKS\dataset\\training_set"
-test_dataset_path = "C:\Learning\Computer Science\Machine Learning\\Udemy-DeepLearningAZ2023-NeuralNetworks\PART-02-CNN-CONVOLUTIONAL-NEURAL-NETWORKS\dataset\\test_set"
+train_dataset_path = "C:\Learning\Computer Science\Machine Learning\\02 Databases Used\CV Datasets\Binary Classification CV Datasets\Cat Vs Dog\\training_set"
+test_dataset_path = "C:\Learning\Computer Science\Machine Learning\\02 Databases Used\CV Datasets\Binary Classification CV Datasets\Cat Vs Dog\\test_set"
 
 
-
-# Basics transformations of the images from traning and test datasets
+# Basics transformations of the images from training and test datasets, respectively
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     transforms.Resize((64,64))
 ])
 
-# Load the dataset with the basics transformations
+# Load the datasets with the basics transformations
 train_dataset = torchvision.datasets.ImageFolder(train_dataset_path, transform=transform)
 test_dataset = torchvision.datasets.ImageFolder(test_dataset_path, transform=transform)
 
 
-
-# We add more images for our datasets, by augmentating the existing images
+# We add more images for our datasets, by augmenting the existing images
 transform_augmentation = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
@@ -50,20 +42,17 @@ transform_augmentation = transforms.Compose([
     transforms.RandomRotation(degrees=45)
 ])
 
-# Load the existed datasets with more (augmentation) transformations
+# Load the (existed) datasets with more (augmentation) transformations
 train_dataset_augmentated = torchvision.datasets.ImageFolder(train_dataset_path, transform=transform_augmentation)
 test_dataset_augmentated = torchvision.datasets.ImageFolder(test_dataset_path, transform=transform_augmentation)
 
 
-
 # We do the unions of the corresponding datasets, in fact we double the datasets
 train_dataset = train_dataset.__add__(train_dataset_augmentated)
-test_dataset = test_dataset.__add__(test_dataset_augmentated)
-
+# test_dataset = test_dataset.__add__(test_dataset_augmentated)
 
 
 # We split the training-set into the train-set and the validation-set
-
 # First we set the sizes of these sets
 train_set_size = 12000
 val_set_size = 4000
@@ -73,15 +62,12 @@ train_set, val_set, _ = torch.utils.data.random_split(
     train_dataset, [train_set_size, val_set_size, len(train_dataset) - train_set_size - val_set_size])
 
 
-
 # Set the loaders corresponding to training, validation and testing datasets, respectively
 batch_size = 16
+
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=True, num_workers=2)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-
-
-
 
 
 ########################################## ----- THE ARCHITECTURE ----- ################################################
@@ -100,7 +86,6 @@ class CNN_BinaryClassification(nn.Module):
         self.linearLayer1 = nn.Linear(in_features=6272, out_features=128, dtype=torch.float64)
         self.linearLayer2 = nn.Linear(in_features=128, out_features=16, dtype=torch.float64)
         self.linearLayer3 = nn.Linear(in_features=16, out_features=1, dtype=torch.float64)
-
 
 
     def forward(self, x):
@@ -127,18 +112,14 @@ class CNN_BinaryClassification(nn.Module):
         return x
 
 
-
-
-
-################################## ----- THE TRAINING PROCESS ----- ###################################################
-
+################################### ----- THE TRAINING PROCESS ----- ###################################################
 # Set the device to GPU if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-
 def compute_accuracy(model, data_loader):
     # Computes the <model>'s accuracy on the <data_loader> dataset
+
     model = model.to(device)     # Set the <model> to GPU if available
 
     model.eval()   # Set the model to evaluation mode
@@ -158,13 +139,10 @@ def compute_accuracy(model, data_loader):
 
     print(f"Correct Items= {total_correct} ----- All Items = {len(data_loader.dataset)}")
 
-
     return total_correct/len(data_loader.dataset)
 
 
-
-def train(model, train_loader, val_loader, num_epochs, criterion, optimizer):
-    # The training process ...
+def train(model, train_loader, val_loader, test_loader, num_epochs, criterion, optimizer):
     print("\n\n\n ----- The Training Process ... -----")
 
     model = model.to(device)     # Set the model to GPU if available
@@ -198,7 +176,7 @@ def train(model, train_loader, val_loader, num_epochs, criterion, optimizer):
 
             total_loss += loss
 
-        # Take the model('s weights) with the best accuracy
+        # Take the model('s weights) with the best accuracy based on the Validation Set
         print(f"\n Computing the Validation Accuracy for Epoch {epoch + 1}:")
         validation_accuracy = compute_accuracy(model, val_loader)
         if validation_accuracy > best_accuracy:
@@ -206,31 +184,29 @@ def train(model, train_loader, val_loader, num_epochs, criterion, optimizer):
             best_weights = copy.deepcopy(model.state_dict())
             best_epoch = epoch + 1
 
-
-        print(f"\n Computing the Test Accuracy for Epoch {epoch + 1}:")
-        test_accuracy = compute_accuracy(model, test_loader)
-
         end_time = time.perf_counter()
         duration = end_time - start_time
 
-        print(f"Epoch = {epoch + 1} ===> Loss = {total_loss: .3f} ===> Time = {duration: .3f} ===> Validation Accuracy = {validation_accuracy: .4f} ===> Test Accuracy = {test_accuracy: .4f} ===> Best Accuracy = {best_accuracy: .4f} at the Epoch {best_epoch}\n")
+        print(f"Epoch = {epoch + 1} ===> Loss = {total_loss: .3f} ===> Time = {duration: .3f} ===> Validation Accuracy = {validation_accuracy: .4f}  ===> Best Accuracy = {best_accuracy: .4f} at the Epoch {best_epoch}\n")
 
+    # Set the model('s weights) with the best accuracy
+    model.load_state_dict(best_weights)
 
-    # Save the best model, based on the Accuracy of the Vadidation Set
-    path_best_model = "C:\Learning\Computer Science\Machine Learning\\03 My Projects\\02 Codes\\00 For GitHub\CNNs\Basics CNNs\MyProject_PyTorch_Basics_CNNs_Classification_ForGitHub\cnn_binaryclassification.pth"
+    print(f"\n Computing the Test Accuracy for the (best) model:")
+    test_accuracy = compute_accuracy(model, test_loader)
+    print(f"\nThe Test Accuracy of the Final Models is: {test_accuracy: .4f}")
+
+    # Save the best model, based on the Accuracy given by the Vadidation Set
+    path_best_model = "../computer-vision-basics/cnn_binary_classification_catdog.pth"
     torch.save(cnn, path_best_model)
-
-
-
 
 
 ############################################  MAIN()  #################################################################
 if __name__ == '__main__':
-    number_of_epochs = 15
+    number_of_epochs = 2
+
     cnn = CNN_BinaryClassification()
     criterion = nn.BCELoss()
     optimizer = optim.AdamW(cnn.parameters(), lr=1e-3)
 
-    val_loader = test_loader
-
-    train(cnn, train_loader, val_loader, number_of_epochs, criterion, optimizer)
+    train(cnn, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, num_epochs=number_of_epochs, criterion=criterion, optimizer=optimizer)
