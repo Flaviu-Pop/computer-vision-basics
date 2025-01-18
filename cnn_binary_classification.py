@@ -16,10 +16,8 @@ from tqdm import tqdm
 # -------------------------------
 
 # Loading the datasets (training set and test set) --- from local disk
-train_dataset_path = "C:\Learning\Computer Science\Machine Learning\\02 Databases Used\CV Datasets\\" + \
-                     "Binary Classification CV Datasets\Cat Vs Dog\\training_set"
-test_dataset_path = "C:\Learning\Computer Science\Machine Learning\\02 Databases Used\CV Datasets\\" + \
-                    "Binary Classification CV Datasets\Cat Vs Dog\\test_set"
+train_dataset_path = "C:\Datasets\Cat Vs Dog\\training_set"
+test_dataset_path = "C:\Datasets\Cat Vs Dog\\test_set"
 
 # Basics transformations of the images from training and test datasets, respectively
 transform = transforms.Compose([

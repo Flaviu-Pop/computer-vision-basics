@@ -17,8 +17,7 @@ from tqdm import tqdm
 batch_size = 8  # We set the batch size
 
 # We set the path of the dataset (CIFAR 10 Dataset) on the local disk
-data_root = "C:\Learning\Computer Science\Machine Learning\\02 Databases Used\CV Datasets\\" + \
-            "Multi Class Classification Datasets\CIFAR 10/data/cifar10"
+data_root = "C:\Datasets\CIFAR 10\data\cifar10"
 
 # We define the basic transformations of the images
 transform = transforms.Compose([

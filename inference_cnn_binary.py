@@ -17,26 +17,31 @@ transform = transforms.Compose([
 
 
 def make_prediction(model, image):
+    pred = "CAT"
     image = image.type(torch.FloatTensor).unsqueeze(0)
     image = transform(image)
     prediction = model(image)
 
     print(f"\nThe prediction is: {prediction.item()}.")
+    if prediction.item() <= 0.5:
+        pred = "DOG"
+
+    return pred
 
 
 # We load the images for prediction/inference from local disk
 image_root_path = "../computer-vision-basics/single_prediction/"
 
-img_1_maia = torchvision.io.read_image(image_root_path + "maia2023.jpg")
-img_2_dog = torchvision.io.read_image(image_root_path + "cat_or_dog_1.jpg")
-img_3_cat = torchvision.io.read_image(image_root_path + "cat_or_dog_2.jpg")
+image_1_dog = torchvision.io.read_image(image_root_path + "image_00.jpg")
+image_2_dog = torchvision.io.read_image(image_root_path + "image_01.jpg")
+image_3_cat = torchvision.io.read_image(image_root_path + "image_02.jpg")
 
 
-make_prediction(cnn, img_1_maia)
-print("It must be DOG.")
+prediction = make_prediction(cnn, image_1_dog)
+print("The prediction is " + prediction + " and it must be a DOG.")
 
-make_prediction(cnn, img_2_dog)
-print("It must be DOG.")
+prediction = make_prediction(cnn, image_2_dog)
+print("The prediction is " + prediction + " and it must be a DOG.")
 
-make_prediction(cnn, img_3_cat)
-print("It must be CAT.")
+prediction = make_prediction(cnn, image_3_cat)
+print("The prediction is " + prediction + " and it must be a CAT.")
